@@ -1,0 +1,13 @@
+{
+    "name": "Twillio",
+    "alias": "twillio",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Twillio\\Providers\\TwillioServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
