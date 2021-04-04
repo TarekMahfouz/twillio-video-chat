@@ -8,6 +8,7 @@
 </template>
 
 <script>
+const DOMAIN_URL = "http://ihtmam.com/video-conf/public";
 export default {
     name: 'video-chat',
     data: function () {
@@ -22,7 +23,7 @@ export default {
             const axios = require('axios')
 
             // Request a new token
-            axios.get('/api/access_token')
+            axios.get(DOMAIN_URL+'/api/access_token')
                 .then(function (response) {
                     _this.accessToken = response.data
                 })

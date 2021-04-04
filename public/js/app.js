@@ -5046,6 +5046,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+var DOMAIN_URL = "http://ihtmam.com/video-conf/public";
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: 'video-chat',
   data: function data() {
@@ -5060,7 +5061,7 @@ __webpack_require__.r(__webpack_exports__);
       var axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js"); // Request a new token
 
 
-      axios.get('/api/access_token').then(function (response) {
+      axios.get(DOMAIN_URL + '/api/access_token').then(function (response) {
         _this.accessToken = response.data;
       })["catch"](function (error) {
         console.log(error);
