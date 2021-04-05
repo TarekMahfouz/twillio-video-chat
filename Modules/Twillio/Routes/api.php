@@ -18,3 +18,4 @@ Route::middleware('auth:api')->get('/twillio', function (Request $request) {
 });
 
 Route::get('access_token', 'API\AccessTokenController@generate_token');
+Route::post('save_access_token', 'API\AccessTokenController@save_token');
