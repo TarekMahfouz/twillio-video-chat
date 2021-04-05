@@ -8,7 +8,7 @@
 </template>
 
 <script>
-const DOMAIN_URL = "http://ihtmam.com/video-conf/public";
+const DOMAIN_URL = "https://ihtmam.com/video-conf/public";
 export default {
     name: 'video-chat',
     data: function () {

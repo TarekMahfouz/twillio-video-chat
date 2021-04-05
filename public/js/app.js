@@ -5046,7 +5046,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-var DOMAIN_URL = "http://ihtmam.com/video-conf/public";
+var DOMAIN_URL = "https://ihtmam.com/video-conf/public";
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: 'video-chat',
   data: function data() {
