@@ -14,6 +14,3 @@
 Route::prefix('twillio')->group(function() {
     Route::get('/', 'TwillioController@index');
 });
-
-
-

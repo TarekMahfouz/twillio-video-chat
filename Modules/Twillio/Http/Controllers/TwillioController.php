@@ -6,74 +6,77 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
+use Twilio\Rest\Client;
+use Twilio\Jwt\AccessToken;
+use Twilio\Jwt\Grants\VideoGrant;
+
 class TwillioController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @return Renderable
-     */
+
+    protected $sid;
+    protected $token;
+    protected $key;
+    protected $secret;
+
+    public function __construct()
+    {
+        $this->sid = env('TWILIO_ACCOUNT_SID');
+        $this->token = env('TWILIO_ACCOUNT_TOKEN');
+        $this->key = env('TWILIO_API_KEY_SID');
+        $this->secret = env('TWILIO_API_KEY_SECRET');
+    }
+
     public function index()
     {
-        return view('twillio::index');
+        $rooms = [];
+        try {
+            $client = new Client($this->sid, $this->token);
+            $allRooms = $client->video->rooms->read([]);
+
+            $rooms = array_map(function($room) {
+                return $room->uniqueName;
+            }, $allRooms);
+
+        } catch (\Exception $e) {
+            echo "<p style='color: brown;'>Error: " . $e->getMessage(). "</p><br/><hr>";
+        }
+        return view('twillio::index', ['rooms' => $rooms]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Renderable
-     */
-    public function create()
+    public function createRoom(Request $request)
     {
-        return view('twillio::create');
+        $client = new Client($this->sid, $this->token);
+
+        $exists = $client->video->rooms->read([ 'uniqueName' => $request->roomName]);
+
+        if (empty($exists)) {
+            $client->video->rooms->create([
+                'uniqueName' => $request->roomName,
+                'type' => 'group',
+                'recordParticipantsOnConnect' => false
+            ]);
+
+            \Log::debug("created new room: ".$request->roomName);
+        }
+
+        return redirect()->action('VideoRoomsController@joinRoom', [
+            'roomName' => $request->roomName
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function store(Request $request)
+    public function joinRoom($roomName)
     {
-        //
-    }
+        // A unique identifier for this user
+        $identity = Auth::user()->name;
 
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function show($id)
-    {
-        return view('twillio::show');
-    }
+        \Log::debug("joined with identity: $identity");
+        $token = new AccessToken($this->sid, $this->key, $this->secret, 3600, $identity);
 
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function edit($id)
-    {
-        return view('twillio::edit');
-    }
+        $videoGrant = new VideoGrant();
+        $videoGrant->setRoom($roomName);
 
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Renderable
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+        $token->addGrant($videoGrant);
 
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Renderable
-     */
-    public function destroy($id)
-    {
-        //
+        return view('room', [ 'accessToken' => $token->toJWT(), 'roomName' => $roomName ]);
     }
 }
