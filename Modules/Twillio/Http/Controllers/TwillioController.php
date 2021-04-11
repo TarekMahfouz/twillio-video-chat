@@ -5,75 +5,99 @@ namespace Modules\Twillio\Http\Controllers;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Modules\Twillio\Entities\Room;
+use Modules\Twillio\Entities\User;
 
 class TwillioController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @return Renderable
-     */
-    public function index()
+
+    public function authView()
     {
-        return view('twillio::index');
+        return view('twillio::login');
+    }
+    public function registerView()
+    {
+        return view('twillio::register');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Renderable
-     */
-    public function create()
+    // Authenticate
+    public function submitLogin(Request $request)
     {
-        return view('twillio::create');
+        try {
+            if($user = Auth::attempt($request->only(['email', 'password']), true)) {
+                return redirect()->route('twillio.create.room');
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+        return redirect()->back();
+    }
+    public function submitRegister(Request $request)
+    {
+        \DB::beginTransaction();
+        try {
+            $data = $request->only(['name', 'email']);
+            $data['password'] = bcrypt($request->password);
+
+            User::create($data);
+
+            if($user = Auth::attempt($request->only(['email', 'password']), true)) {
+                return redirect()->route('twillio.create.room');
+            }
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return $e->getMessage();
+        }
+        return redirect()->back();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function store(Request $request)
+
+    public function createRoom()
     {
-        //
+        return view('twillio::create-room');
     }
 
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function show($id)
+    public function storeRoom(Request $request)
     {
-        return view('twillio::show');
+        \DB::beginTransaction();
+        try {
+            $room_name = str_replace(' ', '-', $request->name);
+
+            $room_code = $this->createRoomCode($room_name, Auth::user()->id);
+
+            $data = [
+                'name' => $request->name,
+                'user_id' => Auth::user()->id,
+                'code' => $room_code
+            ];
+
+            $room = Room::create($data);
+
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return $e->getMessage();
+        }
+        return redirect()->route('twillio.home', $room_code);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function edit($id)
+    public function index($room_code)
     {
-        return view('twillio::edit');
+        return view('twillio::index')->with(['id' => $room_code]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Renderable
-     */
-    public function update(Request $request, $id)
+    public function logout()
     {
-        //
+        Auth::logout();
+
+        return redirect()->route('twillio.login');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Renderable
-     */
-    public function destroy($id)
+
+    private function createRoomCode($name, $userID, $count = 4)
     {
-        //
+        return time()."-$name-$userID-".rand(pow(10, (int)$count - 1), pow(10, (int)$count) - 1);
     }
 }

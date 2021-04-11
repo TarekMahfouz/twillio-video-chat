@@ -1,19 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Module Twillio</title>
 
-       {{-- Laravel Mix - CSS File --}}
-       {{-- <link rel="stylesheet" href="{{ mix('css/twillio.css') }}"> --}}
+        <title>Video Chat</title>
 
+        <link href="https://fonts.googleapis.com/css2?family=Oxygen&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+        @stack('styles')
     </head>
     <body>
-        @yield('content')
+        <div class="container-fluid">
 
-        {{-- Laravel Mix - JS File --}}
-        {{-- <script src="{{ mix('js/twillio.js') }}"></script> --}}
+            <div class="row mb-3">
+                <nav class="navbar navbar-light bg-light justify-content-between col-md-12">
+                    <a class="navbar-brand">Video Conference</a>
+                    <div class="col-md-2">
+                        @if(\Illuminate\Support\Facades\Auth::check())
+                            <a href="{{ route('twillio.create.room') }}">Create Room</a>
+                            &nbsp;|&nbsp;
+                            <a href="{{ route('twillio.logout') }}">Logout</a>
+                        @endif
+                    </div>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mr-1 ml-1">
+                    @yield('content')
+                </div>
+            </div>
+        </div>
+
+
+        @stack('scripts')
     </body>
 </html>
